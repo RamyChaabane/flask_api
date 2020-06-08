@@ -1,0 +1,23 @@
+version: '3.6'
+
+services:
+  flask_app:
+    build: .
+    image: python:latest
+    container_name: flask_app
+    ports:
+     - '5000:5000'
+    links:
+      - mysql
+
+  mysql:
+    restart: always
+    image: mysql:latest
+    container_name: mysql_db
+    environment:
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_ROOT_PASSWORD=''
+    ports:
+      - 3306:3306
+    volumes:
+      - ./mysqlsampledatabase.sql:/docker-entrypoint-initdb.d/
