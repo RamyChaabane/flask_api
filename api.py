@@ -28,15 +28,26 @@ def index():
 
 
 # connect to database
-def mysql_connect():
-    connect_params = dict(
-        host="192.168.0.24",
-        user="root",
-        password="",
-        db="classicmodels",
-        cursorclass=pymysql.cursors.DictCursor
-    )
-    return pymysql.connect(**connect_params)
+class MySQL:
+    def __init__(self):
+        connect_params = dict(
+            host="192.168.0.24",
+            user="root",
+            password="",
+            db="classicmodels",
+            cursorclass=pymysql.cursors.DictCursor
+        )
+        self._db = pymysql.connect(**connect_params)
+
+    def execute(self, sql_query, params=None, fetchone=False):
+        with self._db.cursor() as cursor:
+            cursor.execute(sql_query, params)
+            sql_result, last_id = cursor.fetchone() if fetchone else cursor.fetchall(), cursor.lastrowid
+
+        return sql_result, last_id
+
+    def commit(self):
+        return self._db.commit()
 
 
 class Customers(Resource):
@@ -58,11 +69,10 @@ class Customers(Resource):
         }
 
     def get(self):
-        db = mysql_connect()
+        db = MySQL()
         sql_query = "select customerNumber, {} from customers".format(', '.join(self._field.keys()))
-        with db.cursor() as cursor:
-            cursor.execute(sql_query)
-            return cursor.fetchall()
+        sql_result, _ = db.execute(sql_query)
+        return {'message': 'Success', 'data': sql_result}, 200
 
     def post(self):
         _json = request.json
@@ -94,14 +104,10 @@ class Customers(Resource):
 
         input_sql_query = "insert into customers ({}) ".format(s_rows) % tuple(rows) + " values ({})".format(s_rows)
 
-        print input_sql_query
-        print tuple(request_args.values())
-
-        db = mysql_connect()
-        with db.cursor() as cursor:
-            cursor.execute(input_sql_query, tuple(request_args.values()))
-            request_args['customerNumber'] = cursor.lastrowid
+        db = MySQL()
+        _, last_rowid = db.execute(input_sql_query, tuple(request_args.values()))
         db.commit()
+        request_args['customerNumber'] = last_rowid
 
         return {'message': 'Customer registered', 'data': request_args}, 201
 
@@ -123,47 +129,98 @@ class Customer(Resource):
             'postalCode': {"required": False, "type": "str"},
             'state': {"required": False, "type": "str"},
         }
+        self._db = MySQL()
 
-    def get(self, uuid):
+    def get(self, name_or_uuid):
 
-        sql_query = "select customerNumber, {rows} from customers where " \
-                    "customerNumber='{id}'".format(rows=', '.join(self._field.keys()), id=uuid)
-
-        db = mysql_connect()
-        with db.cursor() as cursor:
-            cursor.execute(sql_query)
-            sql_result = cursor.fetchone()
-        db.close()
+        rows_name = ', '.join(self._field.keys())
+        query = "select customerNumber, {rows} from customers where " \
+                "(**)='{name_or_uuid}'".format(rows=rows_name, name_or_uuid=name_or_uuid)
+        query = query.replace("(**)", "{}")
+        try:
+            int(name_or_uuid)
+            sql_query = query.format("customerNumber")
+            print sql_query
+            sql_result, _ = self._db.execute(sql_query)
+        except ValueError:
+            sql_query = query.format("customerName")
+            sql_result, _ = self._db.execute(sql_query)
 
         if not sql_result:
             return {'message': 'Customer not found'}, 404
         else:
-            sql_result['customerNumber'] = uuid
             return {'message': 'Customer found', 'data': sql_result}, 200
 
-    def delete(self, uuid):
+    def delete(self, name_or_uuid):
 
-        sql_query = "select customerNumber, {rows} from customers where " \
-                    "customerNumber='{id}'".format(rows=', '.join(self._field.keys()), id=uuid)
-
-        db = mysql_connect()
-        with db.cursor() as cursor:
-            cursor.execute(sql_query)
-            sql_result = cursor.fetchone()
-        db.close()
+        dict_msg, response = self.get(name_or_uuid)
+        sql_result = dict_msg.get('data')
 
         if not sql_result:
             return {'message': 'Customer not found'}, 404
+        elif len(sql_result) > 1:
+            return {'message': 'more than one customer has the name {}'.format(name_or_uuid)}, 409
         else:
-            sql_delete_query = "delete from customers where customerNumber='{}'".format(uuid)
-
-            db = mysql_connect()
-            with db.cursor() as cursor:
-                cursor.execute(sql_delete_query)
-            db.commit()
+            sql_delete_query = "delete from customers where {}='{}'"
+            try:
+                int(name_or_uuid)
+                sql_delete_query = sql_delete_query.format("customerNumber", name_or_uuid)
+            except ValueError:
+                sql_delete_query = sql_delete_query.format("customerName", name_or_uuid)
+            finally:
+                self._db.execute(sql_delete_query)
+                self._db.commit()
 
             return '', 204
 
+    def put(self, name_or_uuid):
+        dict_msg, response = self.get(name_or_uuid)
+        sql_result = dict_msg['data']
+
+        if not sql_result:
+            return {'message': 'Customer not found'}, 404
+        elif len(sql_result) > 1:
+            return {'message': 'more than one customer has the name {}'.format(name_or_uuid)}, 409
+        else:
+
+            _json = request.json
+            _type = {"int": int, "str": str}
+
+            request_args = dict()
+
+            for key, value in self._field.iteritems():
+                arg = _json[key]
+
+                if not arg and value['required']:
+                    sys.exit("{} is missing".format(key))
+
+                type_arg = str
+                try:
+                    int(arg)
+                    type_arg = int
+                except ValueError:
+                    pass
+                finally:
+                    if _type[value["type"]] != type_arg:
+                        sys.exit("type of {} is not {}".format(key, value["type"]))
+                    request_args[key] = arg
+
+            set_values = ", ".join(["{}='{}'".format(arg_key, arg_value)
+                                    for arg_key, arg_value in request_args.iteritems()])
+
+            sql_query = "update customers set {} where (**)='{}'".format(set_values, name_or_uuid)
+            sql_query = sql_query.replace("(**)", "{}")
+            try:
+                int(name_or_uuid)
+                sql_query = sql_query.format("customerNumber")
+            except ValueError:
+                sql_query = sql_query.format("customerName")
+            finally:
+                self._db.execute(sql_query)
+                self._db.commit()
+
+        return {'message': 'Customer updated'}, 204
+
 
 api.add_resource(Customers, '/customers')
-api.add_resource(Customer, '/customer/<string:uuid>')
+api.add_resource(Customer, '/customer/<string:name_or_uuid>')
