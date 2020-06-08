@@ -50,7 +50,7 @@ class MySQL:
         return self._db.commit()
 
 
-class Customers(Resource):
+class Common(Resource):
 
     def __init__(self):
         Resource.__init__(self)
@@ -67,11 +67,14 @@ class Customers(Resource):
             'postalCode': {"required": False, "type": "str"},
             'state': {"required": False, "type": "str"},
         }
+        self._db = MySQL()
+
+
+class Customers(Common):
 
     def get(self):
-        db = MySQL()
         sql_query = "select customerNumber, {} from customers".format(', '.join(self._field.keys()))
-        sql_result, _ = db.execute(sql_query)
+        sql_result, _ = self._db.execute(sql_query)
         return {'message': 'Success', 'data': sql_result}, 200
 
     def post(self):
@@ -104,32 +107,14 @@ class Customers(Resource):
 
         input_sql_query = "insert into customers ({}) ".format(s_rows) % tuple(rows) + " values ({})".format(s_rows)
 
-        db = MySQL()
-        _, last_rowid = db.execute(input_sql_query, tuple(request_args.values()))
-        db.commit()
+        _, last_rowid = self._db.execute(input_sql_query, tuple(request_args.values()))
+        self._db.commit()
         request_args['customerNumber'] = last_rowid
 
         return {'message': 'Customer registered', 'data': request_args}, 201
 
 
-class Customer(Resource):
-
-    def __init__(self):
-        Resource.__init__(self)
-        self._field = {
-            'salesRepEmployeeNumber': {"required": True, "type": "int"},
-            'addressLine1': {"required": True, "type": "str"},
-            'addressLine2': {"required": False, "type": "str"},
-            'city': {"required": True, "type": "str"},
-            'contactFirstName': {"required": True, "type": "str"},
-            'contactLastName': {"required": True, "type": "str"},
-            'country': {"required": True, "type": "str"},
-            'customerName': {"required": True, "type": "str"},
-            'phone': {"required": True, "type": "str"},
-            'postalCode': {"required": False, "type": "str"},
-            'state': {"required": False, "type": "str"},
-        }
-        self._db = MySQL()
+class Customer(Common):
 
     def get(self, name_or_uuid):
 
@@ -219,7 +204,7 @@ class Customer(Resource):
                 self._db.execute(sql_query)
                 self._db.commit()
 
-        return {'message': 'Customer updated'}, 204
+        return '', 204
 
 
 api.add_resource(Customers, '/customers')
