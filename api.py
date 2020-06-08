@@ -129,38 +129,50 @@ class Customer(Resource):
             'postalCode': {"required": False, "type": "str"},
             'state': {"required": False, "type": "str"},
         }
+        self._db = MySQL()
 
-    def get(self, uuid):
+    def get(self, name_or_uuid):
 
-        sql_query = "select customerNumber, {rows} from customers where " \
-                    "customerNumber='{id}'".format(rows=', '.join(self._field.keys()), id=uuid)
-
-        db = MySQL()
-        sql_result, _ = db.execute(sql_query, fetchone=True)
+        rows_name = ', '.join(self._field.keys())
+        query = "select customerNumber, {rows} from customers where " \
+                "(**)='{name_or_uuid}'".format(rows=rows_name, name_or_uuid=name_or_uuid)
+        query = query.replace("(**)", "{}")
+        try:
+            int(name_or_uuid)
+            sql_query = query.format("customerNumber")
+            print sql_query
+            sql_result, _ = self._db.execute(sql_query)
+        except ValueError:
+            sql_query = query.format("customerName")
+            sql_result, _ = self._db.execute(sql_query)
 
         if not sql_result:
             return {'message': 'Customer not found'}, 404
         else:
-            sql_result['customerNumber'] = uuid
             return {'message': 'Customer found', 'data': sql_result}, 200
 
-    def delete(self, uuid):
+    def delete(self, name_or_uuid):
 
-        sql_query = "select customerNumber, {rows} from customers where " \
-                    "customerNumber='{id}'".format(rows=', '.join(self._field.keys()), id=uuid)
-
-        db = MySQL()
-        sql_result, _ = db.execute(sql_query, fetchone=True)
+        dict_msg, response = self.get(name_or_uuid)
+        sql_result = dict_msg.get('data')
 
         if not sql_result:
             return {'message': 'Customer not found'}, 404
+        elif len(sql_result) > 1:
+            return {'message': 'more than one customer has the name {}'.format(name_or_uuid)}, 409
         else:
-            sql_delete_query = "delete from customers where customerNumber='{}'".format(uuid)
-            db.execute(sql_delete_query)
-            db.commit()
+            sql_delete_query = "delete from customers where {}='{}'"
+            try:
+                int(name_or_uuid)
+                sql_delete_query = sql_delete_query.format("customerNumber", name_or_uuid)
+            except ValueError:
+                sql_delete_query = sql_delete_query.format("customerName", name_or_uuid)
+            finally:
+                self._db.execute(sql_delete_query)
+                self._db.commit()
 
             return '', 204
 
 
 api.add_resource(Customers, '/customers')
-api.add_resource(Customer, '/customer/<string:uuid>')
+api.add_resource(Customer, '/customer/<string:name_or_uuid>')
