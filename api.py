@@ -173,6 +173,54 @@ class Customer(Resource):
 
             return '', 204
 
+    def put(self, name_or_uuid):
+        dict_msg, response = self.get(name_or_uuid)
+        sql_result = dict_msg['data']
+
+        if not sql_result:
+            return {'message': 'Customer not found'}, 404
+        elif len(sql_result) > 1:
+            return {'message': 'more than one customer has the name {}'.format(name_or_uuid)}, 409
+        else:
+
+            _json = request.json
+            _type = {"int": int, "str": str}
+
+            request_args = dict()
+
+            for key, value in self._field.iteritems():
+                arg = _json[key]
+
+                if not arg and value['required']:
+                    sys.exit("{} is missing".format(key))
+
+                type_arg = str
+                try:
+                    int(arg)
+                    type_arg = int
+                except ValueError:
+                    pass
+                finally:
+                    if _type[value["type"]] != type_arg:
+                        sys.exit("type of {} is not {}".format(key, value["type"]))
+                    request_args[key] = arg
+
+            set_values = ", ".join(["{}='{}'".format(arg_key, arg_value)
+                                    for arg_key, arg_value in request_args.iteritems()])
+
+            sql_query = "update customers set {} where (**)='{}'".format(set_values, name_or_uuid)
+            sql_query = sql_query.replace("(**)", "{}")
+            try:
+                int(name_or_uuid)
+                sql_query = sql_query.format("customerNumber")
+            except ValueError:
+                sql_query = sql_query.format("customerName")
+            finally:
+                self._db.execute(sql_query)
+                self._db.commit()
+
+        return {'message': 'Customer updated'}, 204
+
 
 api.add_resource(Customers, '/customers')
 api.add_resource(Customer, '/customer/<string:name_or_uuid>')
