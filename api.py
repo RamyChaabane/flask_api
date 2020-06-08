@@ -71,7 +71,8 @@ class Customers(Resource):
     def get(self):
         db = MySQL()
         sql_query = "select customerNumber, {} from customers".format(', '.join(self._field.keys()))
-        db.execute(sql_query)
+        sql_result, _ = db.execute(sql_query)
+        return {'message': 'Success', 'data': sql_result}, 200
 
     def post(self):
         _json = request.json
