@@ -219,7 +219,7 @@ class Customer(Resource):
                 self._db.execute(sql_query)
                 self._db.commit()
 
-        return {'message': 'Customer updated'}, 204
+        return '', 204
 
 
 api.add_resource(Customers, '/customers')
