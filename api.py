@@ -18,7 +18,7 @@ def index():
     """Present some documentation"""
 
     # Open the README file
-    with open(os.path.dirname(flask_app.root_path) + '/API/README.md', 'r') as markdown_file:
+    with open('{}/README.md'.format(os.getcwd()), 'r') as markdown_file:
 
         # Read the content of the file
         content = markdown_file.read()
