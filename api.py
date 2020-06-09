@@ -64,7 +64,7 @@ class Common(Resource):
             'country': {"required": True, "type": "str"},
             'customerName': {"required": True, "type": "str"},
             'phone': {"required": True, "type": "str"},
-            'postalCode': {"required": False, "type": "str"},
+            'postalCode': {"required": False, "type": "int"},
             'state': {"required": False, "type": "str"},
         }
         self._db = MySQL()
