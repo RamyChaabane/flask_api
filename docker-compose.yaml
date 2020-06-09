@@ -14,11 +14,11 @@ services:
 
   mysql:
     restart: always
-    image: mariadb:latest
+    image: mariadb:10.4.13
     container_name: mysql_db
     environment:
       - MYSQL_ROOT_PASSWORD=pass
     ports:
       - 3306:3306
     volumes:
-      - ./mysqlsampledatabase.sql:/docker-entrypoint-initdb.d/
+      - "./mysqlsampledatabase.sql:/docker-entrypoint-initdb.d/mysqlsampledatabase.sql:z"
