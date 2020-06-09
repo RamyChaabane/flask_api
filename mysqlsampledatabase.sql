@@ -32,7 +32,7 @@ USE `classicmodels`;
 DROP TABLE IF EXISTS `customers`;
 
 CREATE TABLE `customers` (
-  `customerNumber` int(11) NOT NULL,
+  `customerNumber` int(11) NOT NULL AUTO_INCREMENT,
   `customerName` varchar(50) NOT NULL,
   `contactLastName` varchar(50) NOT NULL,
   `contactFirstName` varchar(50) NOT NULL,
