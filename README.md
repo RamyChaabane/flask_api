@@ -2,5 +2,4 @@
 
 docker-compose up (--build)
 
-curl http://<docker_host_ip>:5000/
-
+curl http://<docker_host_ip>:5000/  
