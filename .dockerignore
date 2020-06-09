@@ -1,0 +1,6 @@
+mysqlsampledatabase.sql
+Dockerfile
+docker-compose
+.gitignore
+.git
+.env

@@ -18,7 +18,7 @@ def index():
     """Present some documentation"""
 
     # Open the README file
-    with open(os.path.dirname(flask_app.root_path) + '/API/README.md', 'r') as markdown_file:
+    with open('{}/README.md'.format(os.getcwd()), 'r') as markdown_file:
 
         # Read the content of the file
         content = markdown_file.read()
@@ -31,10 +31,10 @@ def index():
 class MySQL:
     def __init__(self):
         connect_params = dict(
-            host="192.168.0.24",
-            user="root",
-            password="",
-            db="classicmodels",
+            host="mysql",
+            user=os.environ["MYSQL_USER"],
+            password=os.environ["MYSQL_PASS"],
+            db=os.environ["MYSQL_DATABASE"],
             cursorclass=pymysql.cursors.DictCursor
         )
         self._db = pymysql.connect(**connect_params)
@@ -64,7 +64,7 @@ class Common(Resource):
             'country': {"required": True, "type": "str"},
             'customerName': {"required": True, "type": "str"},
             'phone': {"required": True, "type": "str"},
-            'postalCode': {"required": False, "type": "str"},
+            'postalCode': {"required": False, "type": "int"},
             'state': {"required": False, "type": "str"},
         }
         self._db = MySQL()

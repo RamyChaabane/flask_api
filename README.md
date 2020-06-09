@@ -1,5 +1,5 @@
 # Hello World
 
-set FLASK_APP=api.py  
-set FLASK_ENV=development  
-Flask run
+docker-compose up (--build)
+
+curl http://<docker_host_ip>:5000/  
