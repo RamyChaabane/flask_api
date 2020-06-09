@@ -31,10 +31,10 @@ def index():
 class MySQL:
     def __init__(self):
         connect_params = dict(
-            host="192.168.0.24",
-            user="root",
-            password="",
-            db="classicmodels",
+            host="mysql",
+            user=os.environ["MYSQL_USER"],
+            password=os.environ["MYSQL_PASS"],
+            db=os.environ["MYSQL_DATABASE"],
             cursorclass=pymysql.cursors.DictCursor
         )
         self._db = pymysql.connect(**connect_params)
