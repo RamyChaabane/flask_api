@@ -15,9 +15,11 @@ If multiple customers share the same name a conflict exception will be raised
 
 # Get started
 - install git, docker, and docker-compose
+- start and enable docker
 - clone the repo: git clone https://github.com/RamyChaabane/flask_api.git
 - change directory to flask_api
-- docker-compose up
+- docker-compose up (-d for detached mode)
+- curl http://<docker_host_ip> (you should see "The API is working ...")
 
 # Test the API  
 - Get customers: curl http://<docker_host_ip>/customers
@@ -60,3 +62,5 @@ _**Example:**_
 - Get customer by name: curl http://<docker_host_ip>/customer/<name>
 - Delete a customer: curl "http://<docker_host_ip>/customer/<name_or_uuid>" -X DELETE
 - Update a customer: curl "http://<docker_host_ip>/customer/<name_or_uuid>" -X PUT -d <data_in_json_format> -H "Content-Type: application/json"
+
+PS: if name contains spaces, replace those spaces with "%20" in the curl URL 

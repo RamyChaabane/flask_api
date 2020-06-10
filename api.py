@@ -1,7 +1,6 @@
 import os
 import sys
 
-import markdown
 import pymysql
 from flask import Flask, request
 from flask_restful import Resource, Api
@@ -16,15 +15,7 @@ api = Api(flask_app)
 @flask_app.route("/")
 def index():
     """Present some documentation"""
-
-    # Open the README file
-    with open('{}/README.md'.format(os.getcwd()), 'r') as markdown_file:
-
-        # Read the content of the file
-        content = markdown_file.read()
-
-        # Convert to HTML
-        return markdown.markdown(content)
+    return "The API is working ...\n"
 
 
 # connect to database

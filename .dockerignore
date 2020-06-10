@@ -1,6 +1,7 @@
 mysqlsampledatabase.sql
-Dockerfile
 docker-compose
+Dockerfile
+README.md
 .gitignore
 .git
 .env
