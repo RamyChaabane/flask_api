@@ -39,7 +39,7 @@ some mandatory data need to be provided
     'phone': {"required": True, "type": "str"},
     'postalCode': {"required": False, "type": "int"},
     'state': {"required": False, "type": "str"},
-        }
+}
 ````
 
 _**Example:**_
@@ -62,5 +62,7 @@ _**Example:**_
 - Get customer by name: curl http://<docker_host_ip>/customer/<name>
 - Delete a customer: curl "http://<docker_host_ip>/customer/<name_or_uuid>" -X DELETE
 - Update a customer: curl "http://<docker_host_ip>/customer/<name_or_uuid>" -X PUT -d <data_in_json_format> -H "Content-Type: application/json"
+
+uuid is the customerNumber as defined as PK in the database
 
 PS: if name contains spaces, replace those spaces with "%20" in the curl URL 
