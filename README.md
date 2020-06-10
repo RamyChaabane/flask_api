@@ -62,3 +62,5 @@ _**Example:**_
 - Get customer by name: curl http://<docker_host_ip>/customer/<name>
 - Delete a customer: curl "http://<docker_host_ip>/customer/<name_or_uuid>" -X DELETE
 - Update a customer: curl "http://<docker_host_ip>/customer/<name_or_uuid>" -X PUT -d <data_in_json_format> -H "Content-Type: application/json"
+
+PS: if name contains spaces, replace those spaces with "%20" in the curl URL 
