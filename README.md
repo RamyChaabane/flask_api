@@ -18,7 +18,7 @@ If multiple customers share the same name a conflict exception will be raised
 - start and enable docker
 - clone the repo: git clone https://github.com/RamyChaabane/flask_api.git
 - change directory to flask_api
-- docker-compose up
+- docker-compose up (-d for detached mode)
 
 # Test the API  
 - Get customers: curl http://<docker_host_ip>/customers

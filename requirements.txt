@@ -1,5 +1,4 @@
 Flask
 Flask-RESTful
-Markdown
 PyMySQL
 mysql-connector-python
