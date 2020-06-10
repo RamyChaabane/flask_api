@@ -15,6 +15,7 @@ If multiple customers share the same name a conflict exception will be raised
 
 # Get started
 - install git, docker, and docker-compose
+- start and enable docker
 - clone the repo: git clone https://github.com/RamyChaabane/flask_api.git
 - change directory to flask_api
 - docker-compose up
