@@ -15,7 +15,7 @@ api = Api(flask_app)
 @flask_app.route("/")
 def index():
     """Present some documentation"""
-    return "The API is working ..."
+    return "The API is working ...\n"
 
 
 # connect to database
